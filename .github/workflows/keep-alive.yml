@@ -1,0 +1,22 @@
+name: Keep HuggingFace Space Alive
+
+on:
+  schedule:
+    # Runs every 2 hours
+    - cron: '0 */2 * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping HuggingFace Space
+        run: |
+          echo "Pinging HuggingFace Space..."
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://muhammad-ammar-anwar-voice-ai-agent.hf.space/health)
+          echo "Response status: $STATUS"
+          if [ "$STATUS" -ge 200 ] && [ "$STATUS" -lt 300 ]; then
+            echo "Space is alive!"
+          else
+            echo "Warning: Space returned status $STATUS"
+          fi
