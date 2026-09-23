@@ -1,0 +1,88 @@
+============================================================
+  CARECLOUD - AI ENGINEER TECHNICAL ASSESSMENT SUBMISSION
+============================================================
+
+CANDIDATE: Muhammad Ammar Anwar
+EMAIL:      ammaranver22@gmail.com
+
+------------------------------------------------------------
+REPOSITORY
+------------------------------------------------------------
+URL:        https://github.com/Muhammad-Ammar-Anwar/Voice_Ai_Agent
+
+------------------------------------------------------------
+US PHONE NUMBER
+------------------------------------------------------------
+Number:     +1 (513) 901 0470
+Provider:   Vapi (free US number)
+Agent:      Sam - Patient Registration Voice Agent
+
+------------------------------------------------------------
+API BASE URL
+------------------------------------------------------------
+Base URL:   https://voiceaiagent-production-7c45.up.railway.app
+
+Endpoints:
+  GET  /health       -> Health check
+  GET  /patients     -> List all patients (supports filters)
+  POST /patients     -> Register a new patient
+  GET  /patients/{id}-> Get patient by ID
+  PUT  /patients/{id}-> Update patient
+  DEL  /patients/{id}-> Soft delete patient
+  GET  /docs         -> Swagger API documentation
+  GET  /dashboard    -> Live patient dashboard
+
+------------------------------------------------------------
+DASHBOARD
+------------------------------------------------------------
+URL:        https://voiceaiagent-production-7c45.up.railway.app/dashboard
+
+------------------------------------------------------------
+API DOCS (SWAGGER)
+------------------------------------------------------------
+URL:        https://voiceaiagent-production-7c45.up.railway.app/docs
+
+------------------------------------------------------------
+TESTING NOTES
+------------------------------------------------------------
+1. VOICE AGENT TEST:
+   - Call +1 (513) 901 0470 from any phone
+   - Sam will greet you and collect patient demographics
+   - Provide: name, DOB, sex, phone, address, city, state, ZIP
+   - Sam reads everything back for confirmation before saving
+   - Say "yes" to confirm and register
+
+2. PRE-SEEDED DEMO PATIENTS (for returning caller demo):
+   - Alex Rivera    | Phone: 512-555-0101
+   - Priya Patel    | Phone: 415-555-0102
+
+3. REST API TEST (no auth required):
+   curl https://voiceaiagent-production-7c45.up.railway.app/patients
+   curl https://voiceaiagent-production-7c45.up.railway.app/health
+
+4. CREATE PATIENT VIA API:
+   curl -X POST https://voiceaiagent-production-7c45.up.railway.app/patients \
+     -H "content-type: application/json" \
+     -d '{
+       "first_name": "Jane",
+       "last_name": "Doe",
+       "date_of_birth": "03/03/1990",
+       "sex": "Female",
+       "phone_number": "(512) 555-0199",
+       "address_line_1": "12 Main St",
+       "city": "Austin",
+       "state": "TX",
+       "zip_code": "78701"
+     }'
+
+------------------------------------------------------------
+TECH STACK
+------------------------------------------------------------
+  Voice/Telephony:  Vapi (STT: Deepgram, LLM: GPT-4o, TTS: Vapi)
+  Backend:          FastAPI + Python
+  Database:         PostgreSQL (Neon - hosted)
+  Hosting:          Railway
+  Validation:       Pydantic v2 + shared validators
+  ORM:              SQLAlchemy 2
+
+------------------------------------------------------------
