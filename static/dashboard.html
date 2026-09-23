@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Registered patients</title>
+<style>
+  :root { --ink:#1d2b2a; --muted:#5f7170; --line:#d8e0de; --bg:#f7faf9; --accent:#0f6b63; --new:#e3f4f1; }
+  * { box-sizing: border-box; }
+  body { margin:0; font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif; color:var(--ink); background:var(--bg); }
+  main { max-width:1100px; margin:0 auto; padding:24px 16px 48px; }
+  header { display:flex; flex-wrap:wrap; gap:12px 24px; align-items:baseline; justify-content:space-between; margin-bottom:16px; }
+  h1 { font-size:22px; margin:0; }
+  #status { color:var(--muted); font-size:13px; }
+  input { font:inherit; padding:8px 10px; border:1px solid var(--line); border-radius:6px; min-width:220px; background:#fff; }
+  input:focus-visible { outline:2px solid var(--accent); outline-offset:1px; }
+  .wrap { overflow-x:auto; border:1px solid var(--line); border-radius:8px; background:#fff; }
+  table { width:100%; border-collapse:collapse; min-width:760px; }
+  th, td { text-align:left; padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { font-weight:600; font-size:13px; color:var(--muted); background:#fbfdfc; }
+  tr:last-child td { border-bottom:0; }
+  tr.new td { background:var(--new); }
+  .sub { color:var(--muted); font-size:13px; }
+  .empty { padding:32px 16px; text-align:center; color:var(--muted); }
+  @media (prefers-reduced-motion: no-preference) { tr.new td { transition:background 2s; } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1>Registered patients</h1>
+      <div id="status" role="status">Loading…</div>
+    </div>
+    <input id="q" type="search" placeholder="Filter by name or phone" aria-label="Filter patients">
+  </header>
+  <div class="wrap">
+    <table>
+      <thead><tr><th>Name</th><th>Date of birth</th><th>Phone</th><th>Address</th><th>Insurance</th><th>Registered</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <div id="empty" class="empty" hidden>No patients yet. Call the number and register one.</div>
+  </div>
+</main>
+<script>
+  // All values are inserted with textContent, never innerHTML, so patient-entered text cannot inject markup.
+  let patients = [], seen = new Set(), first = true;
+  const $ = id => document.getElementById(id);
+  const fmtPhone = p => p && p.length === 10 ? `(${p.slice(0,3)}) ${p.slice(3,6)}-${p.slice(6)}` : (p || "");
+
+  function cell(tr, main, sub) {
+    const td = document.createElement("td");
+    td.textContent = main || "";
+    if (sub) { const s = document.createElement("div"); s.className = "sub"; s.textContent = sub; td.appendChild(s); }
+    tr.appendChild(td);
+  }
+
+  function render() {
+    const q = $("q").value.trim().toLowerCase();
+    const list = patients.filter(p => !q || `${p.first_name} ${p.last_name} ${p.phone_number}`.toLowerCase().includes(q));
+    const tbody = $("rows"); tbody.replaceChildren();
+    list.forEach(p => {
+      const tr = document.createElement("tr");
+      if (!first && !seen.has(p.patient_id)) tr.className = "new";
+      cell(tr, `${p.first_name} ${p.last_name}`, p.email);
+      cell(tr, p.date_of_birth, p.sex);
+      cell(tr, fmtPhone(p.phone_number), p.preferred_language !== "English" ? p.preferred_language : "");
+      cell(tr, [p.address_line_1, p.address_line_2].filter(Boolean).join(", "), `${p.city}, ${p.state} ${p.zip_code}`);
+      cell(tr, p.insurance_provider, p.insurance_member_id);
+      cell(tr, new Date(p.created_at).toLocaleString());
+      tbody.appendChild(tr);
+    });
+    $("empty").hidden = list.length > 0;
+  }
+
+  async function load() {
+    try {
+      const res = await fetch("/patients?limit=500");
+      const body = await res.json();
+      if (body.error) throw new Error(body.error.message);
+      patients = body.data;
+      $("status").textContent = `${patients.length} patient${patients.length === 1 ? "" : "s"} · updated ${new Date().toLocaleTimeString()}`;
+      render();
+      patients.forEach(p => seen.add(p.patient_id)); first = false;
+    } catch (e) {
+      $("status").textContent = `Could not load patients: ${e.message}. Retrying…`;
+    }
+  }
+  $("q").addEventListener("input", render);
+  load(); setInterval(load, 8000);   // auto-refresh so new registrations appear during a live demo
+</script>
+</body>
+</html>
